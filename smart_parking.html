@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Parking System</title>
+<style>
+  :root { --night:#0a1b3d; --navy:#142b5c; --gold:#b8914f; --gold-soft:#f4ecdc; --bg:#eef1f6; --ink:#1a2238; --mute:#5f6b85; --line:#dde2ec;
+          --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+          padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+  * { box-sizing: border-box; }
+  [hidden] { display:none !important; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  header { background:linear-gradient(135deg,#071430,var(--night) 55%,#16306a); color:#e6c98f; padding:30px 5vw; border-bottom:3px solid var(--gold); }
+  header h1 { margin:0; display:flex; align-items:center; font:500 2rem/1.2 var(--serif); letter-spacing:.01em; }
+  .logo { display:inline-flex; align-items:center; justify-content:center; width:46px; height:46px; margin-right:14px; border:1.5px solid var(--gold); border-radius:12px; background:rgba(255,255,255,.05); color:#e6c98f; font:600 1.6rem var(--serif); }
+  main { max-width:1000px; margin:0 auto; padding:28px 5vw 56px; }
+  .layout { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:22px; align-items:start; }
+  .layout.single { grid-template-columns:minmax(0,640px); justify-content:center; }
+  @media (max-width:800px) { .layout, .layout.single { grid-template-columns:1fr; } }
+  section { background:#fff; border:1px solid var(--line); border-radius:16px; padding:24px; margin-bottom:22px; box-shadow:0 1px 2px rgba(10,27,61,.04), 0 12px 32px -14px rgba(10,27,61,.16); }
+  h2 { margin:0 0 12px; font:600 1.25rem/1.3 var(--serif); color:var(--navy); }
+  label { display:block; margin-top:14px; font-size:.85rem; font-weight:600; color:var(--mute); }
+  input, select { width:100%; padding:11px 12px; margin-top:5px; border:1px solid #cfd6e4; border-radius:10px; background:#fff; color:var(--ink); font:inherit; font-weight:400; }
+  input:focus, select:focus { border-color:var(--gold); outline:3px solid rgba(184,145,79,.35); }
+  button { margin-top:16px; padding:12px 26px; background:var(--night); color:#e6c98f; border:1px solid var(--night); border-radius:999px; font:inherit; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:background .15s, border-color .15s; }
+  button:hover { background:#16306a; border-color:#16306a; }
+  button:focus-visible { outline:3px solid rgba(184,145,79,.55); outline-offset:2px; }
+  button.ghost { background:transparent; color:var(--night); border-color:#b9c2d6; margin-left:8px; }
+  button.ghost:hover { background:#f1f4fa; }
+  #home { padding:44px 36px; border-top:3px solid var(--gold); }
+  #home h2.welcome { margin:0 0 32px; font:500 3.6rem/1.05 var(--serif); letter-spacing:-0.01em; color:var(--night); }
+  .choices { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:600px) { .choices { grid-template-columns:1fr; } #home { padding:28px 20px; } #home h2.welcome { font-size:2.8rem; } }
+  .choices button.card { display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin:0; padding:26px; text-align:left; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:14px; font-weight:400; transition:transform .18s, box-shadow .18s, border-color .18s; }
+  .choices button.card:hover { transform:translateY(-3px); border-color:var(--gold); box-shadow:0 14px 28px -14px rgba(10,27,61,.3); background:#fff; }
+  .card .ico { display:flex; align-items:center; justify-content:center; width:54px; height:54px; margin-bottom:12px; background:var(--night); border-radius:50%; }
+  .card .ico svg { stroke:#e6c98f; }
+  .card b { font:600 1.25rem var(--serif); color:var(--navy); }
+  .card span.d { color:var(--mute); font-size:.95rem; }
+  #msg { padding:13px 18px; margin-bottom:22px; background:#fff; border:1px solid var(--line); border-left:4px solid var(--gold); border-radius:10px; }
+  #msg.err { border-left-color:#b3261e; }
+  .plate { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  #ltr { text-transform:uppercase; }
+  .hint { font-size:.9rem; color:var(--mute); margin:16px 0 0; }
+  #plate { display:inline-block; min-width:150px; margin-left:8px; padding:3px 14px; background:#fff; color:#111; border:2px solid #111; border-radius:6px; font:700 1.1rem/1.5 ui-monospace, "SFMono-Regular", Consolas, monospace; letter-spacing:.12em; text-align:center; }
+  #rLabel { color:var(--mute); font-weight:600; }
+  .big { display:inline-block; margin:8px 0 18px; padding:12px 28px; background:var(--night); color:#e6c98f; border-radius:12px; font:500 3.4rem/1.1 var(--serif); letter-spacing:.01em; }
+  dl { margin:0; }
+  dl div { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px dashed #cfd6e4; }
+  dt { color:var(--mute); } dd { margin:0; font-weight:600; text-align:right; }
+  ul.avail { list-style:none; margin:14px 0 0; padding:0; }
+  ul.avail li { margin-bottom:16px; }
+  .top { display:flex; justify-content:space-between; font-size:.9rem; }
+  .bar { height:8px; background:#e7ebf3; border-radius:4px; margin-top:5px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg,#d2b274,var(--gold)); border-radius:4px; }
+  #total { margin:0; font-weight:600; color:var(--navy); }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { background:#f3f5fa; color:var(--navy); font-size:.85rem; font-weight:600; border-bottom:2px solid var(--gold); }
+  tbody tr:hover td { background:#f8f9fc; }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+
+  /* THEME: Warm Alabaster */
+  :root { --bg:#f5f0e4; --line:#e4dccb; --mute:#6b6657; }
+  section, #msg, .choices button.card, .choices button.card:hover { background:#fffdf7; }
+  input, select { background:#fffdf7; border-color:#d9d0bc; }
+  th { background:#f1e9d6; }
+  .bar { background:#ece4d2; }
+  dl div { border-bottom-color:#d9d0bc; }
+  tbody tr:hover td { background:#faf5e8; }
+  button.ghost { border-color:#cbbfa5; }
+  button.ghost:hover { background:#f1e9d6; }
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="logo">P</span>Smart Parking System</h1>
+</header>
+
+<main>
+  <div id="msg" role="status" aria-live="polite" hidden></div>
+
+  <div class="layout" id="layout">
+    <div>
+      <section id="home">
+        <h2 class="welcome">Welcome</h2>
+        <div class="choices">
+          <button id="goEntry" type="button" class="card">
+            <span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></span>
+            <b>Vehicle entry</b>
+            <span class="d">Get your parking slot number instantly.</span>
+          </button>
+          <button id="goExit" type="button" class="card">
+            <span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></span>
+            <b>Vehicle exit</b>
+            <span class="d">Check your bill and pay to leave.</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="form" hidden>
+        <h2 id="formTitle"></h2>
+        <form id="vehForm" novalidate>
+          <label>State Code <select id="state" required></select></label>
+          <div class="plate">
+            <label>District Code <input id="n2" inputmode="numeric" maxlength="2" pattern="[0-9]{2}" placeholder="00" required></label>
+            <label>Series Letters (optional) <input id="ltr" maxlength="2" pattern="[A-Za-z]{1,2}" placeholder="S"></label>
+            <label>Sequential Number <input id="n4" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="0000" required></label>
+          </div>
+          <p class="hint">Vehicle number: <b id="plate"></b></p>
+          <label id="typeLabel">Vehicle type <select id="vtype"></select></label>
+          <button type="button" id="formBtn"></button>
+          <button type="button" id="formBack" class="ghost">Back</button>
+        </form>
+      </section>
+
+      <section id="result" hidden>
+        <h2 id="rTitle"></h2>
+        <div id="rLabel"></div>
+        <div class="big" id="rBig"></div>
+        <dl id="rRows"></dl>
+        <p class="hint" id="rNote"></p>
+        <div id="rBtns"></div>
+      </section>
+    </div>
+
+    <aside id="side">
+      <section>
+        <h2>Free slots</h2>
+        <p id="total"></p>
+        <ul class="avail" id="avail"></ul>
+      </section>
+    </aside>
+  </div>
+
+  <section id="listSec">
+    <h2>Parked vehicles</h2>
+    <label>Search by vehicle number <input id="search"></label>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Vehicle no.</th><th>Type</th><th>Slot</th><th>Entry time</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  // API-START
+  // DEMO ONLY: this object plays the role of the Java backend inside the browser.
+  const TYPES = [['Car','C',100,100],['Bike','B',60,50],['SUV','S',40,150],['Van','V',25,250],['Truck','T',25,300]];
+  const MS_PER_MINUTE = 60000; // for testing, set to 1000 (1 second counts as 1 minute)
+  const KEY = 'smartParking:v2';
+  let store = [];
+  try { const d = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(d)) store = d; } catch (e) {}
+  const clock = d => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); // 1:10 AM
+  const stamp = d => d.toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + d.getDate() + ' ' + d.toLocaleDateString('en-US', { month: 'short' }) + ' ' + d.getFullYear() + ', ' + clock(d); // Sunday, 11 Oct 2026, 1:10 AM
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+  const find = no => store.findIndex(v => v[0].toLowerCase() === no.trim().toLowerCase());
+  const bill = v => {
+    const m = Math.max(1, Math.ceil((Date.now() - Number(v[4])) / MS_PER_MINUTE));
+    const initial = TYPES.find(t => t[0] === v[1])[3];
+    const extra = m > 120 ? Math.ceil((m - 120) / 60) : 0;
+    return [v[0], v[1], v[2], v[3], clock(new Date()), String(m), String(initial), String(extra), String(initial + extra * 20)];
+  };
+  const api = {
+    types: async () => TYPES.map(t => [t[0], String(t[2]), String(t[2] - store.filter(v => v[1] === t[0]).length), String(t[3])]),
+    vehicles: async () => store.slice(),
+    entry: async (no, type) => {
+      const t = TYPES.find(x => x[0] === type);
+      if (find(no) >= 0) throw new Error('This vehicle is already parked.');
+      let k = 1;
+      while (k <= t[2] && store.some(v => v[2] === t[1] + k)) k++;
+      if (k > t[2]) throw new Error('No free slot is available for this vehicle type.');
+      const v = [no.trim(), type, t[1] + k, stamp(new Date()), String(Date.now())];
+      store.push(v);
+      save();
+      return v;
+    },
+    quote: async no => {
+      const i = find(no);
+      if (i < 0) throw new Error('Vehicle not found. Please check the vehicle number.');
+      return bill(store[i]);
+    },
+    exit: async no => {
+      const i = find(no);
+      if (i < 0) throw new Error('Vehicle not found. Please check the vehicle number.');
+      const b = bill(store[i]);
+      store.splice(i, 1);
+      save();
+      return b;
+    }
+  };
+  // API-END
+
+  const NOTE = 'Note: The initial fee is for up to 2 hours. Thereafter, a rate of 20 rupees per hour will apply.';
+  let types = [], all = [], mode = 'entry';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
+  const rows = pairs => pairs.map(p => '<div><dt>' + p[0] + '</dt><dd>' + esc(p[1]) + '</dd></div>').join('');
+  const inr = n => '\u20B9' + n;
+  const fmt = m => (m >= 60 ? Math.floor(m / 60) + ' h ' : '') + (m % 60) + ' min';
+
+  function show(id) {
+    ['home', 'form', 'result'].forEach(s => { $(s).hidden = s !== id; });
+    const home = id === 'home';
+    $('side').hidden = !home;
+    $('listSec').hidden = !home;
+    $('layout').className = home ? 'layout' : 'layout single';
+    say('');
+    window.scrollTo(0, 0);
+  }
+
+  function say(text, isError) {
+    $('msg').hidden = !text;
+    $('msg').textContent = text;
+    $('msg').className = isError ? 'err' : '';
+  }
+
+  // One result page for every outcome (slot assigned, bill, payment received)
+  function result(o) {
+    $('rTitle').textContent = o.title;
+    $('rLabel').textContent = o.label;
+    $('rBig').textContent = o.big;
+    $('rRows').innerHTML = rows(o.rows);
+    $('rNote').textContent = o.note || '';
+    $('rNote').hidden = !o.note;
+    $('rBtns').innerHTML = '';
+    o.buttons.forEach(b => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.textContent = b[0];
+      if (b[2]) el.className = 'ghost';
+      el.onclick = b[1];
+      $('rBtns').appendChild(el);
+    });
+    show('result');
+  }
+
+  function renderSide() {
+    const free = types.reduce((a, t) => a + Number(t[2]), 0);
+    const cap = types.reduce((a, t) => a + Number(t[1]), 0);
+    $('total').textContent = free + ' of ' + cap + ' slots free';
+    $('avail').innerHTML = types.map(t =>
+      '<li><div class="top"><b>' + esc(t[0]) + ' \u2013 ' + inr(t[3]) + '</b><span>' + t[2] + ' free of ' + t[1] + '</span></div>' +
+      '<div class="bar"><i style="width:' + ((t[1] - t[2]) / t[1] * 100) + '%"></i></div></li>').join('');
+  }
+
+  function renderTable() {
+    const q = $('search').value.toLowerCase();
+    const shown = all.filter(v => v[0].toLowerCase().includes(q));
+    $('rows').innerHTML = shown.length
+      ? shown.map(v => '<tr>' + v.slice(0, 4).map(x => '<td>' + esc(x) + '</td>').join('') + '</tr>').join('')
+      : '<tr><td colspan="4">No vehicles found.</td></tr>';
+  }
+
+  async function refresh() {
+    types = await api.types();
+    all = await api.vehicles();
+    const cur = $('vtype').value || 'Car';
+    $('vtype').innerHTML = types.map(t => '<option value="' + esc(t[0]) + '">' + esc(t[0]) + ' \u2013 ' + inr(t[3]) + '</option>').join('');
+    $('vtype').value = cur;
+    renderSide();
+    renderTable();
+  }
+
+  // Vehicle number, for example KL 63 H 1280
+  const STATES = 'AN Andaman & Nicobar Islands|AP Andhra Pradesh|AR Arunachal Pradesh|AS Assam|BR Bihar|CH Chandigarh|CG Chhattisgarh|DD Dadra & Nagar Haveli and Daman & Diu|DL Delhi|GA Goa|GJ Gujarat|HR Haryana|HP Himachal Pradesh|JK Jammu & Kashmir|JH Jharkhand|KA Karnataka|KL Kerala|LA Ladakh|LD Lakshadweep|MP Madhya Pradesh|MH Maharashtra|MN Manipur|ML Meghalaya|MZ Mizoram|NL Nagaland|OD Odisha|PY Puducherry|PB Punjab|RJ Rajasthan|SK Sikkim|TN Tamil Nadu|TS Telangana|TR Tripura|UP Uttar Pradesh|UK Uttarakhand|WB West Bengal';
+  $('state').innerHTML = STATES.split('|').map(s => {
+    const c = s.slice(0, 2);
+    return '<option value="' + c + '"' + (c === 'KL' ? ' selected' : '') + '>' + esc(c + ' (' + s.slice(3) + ')') + '</option>';
+  }).join('');
+  const plateText = () => [$('state').value, $('n2').value, $('ltr').value.toUpperCase(), $('n4').value].filter(Boolean).join(' ');
+  const syncPlate = () => {
+    $('n2').value = $('n2').value.replace(/\D/g, '');
+    $('n4').value = $('n4').value.replace(/\D/g, '');
+    $('ltr').value = $('ltr').value.replace(/[^A-Za-z]/g, '').toUpperCase();
+    $('plate').textContent = plateText();
+  };
+  ['state', 'n2', 'ltr', 'n4'].forEach(id => $(id).addEventListener('input', syncPlate));
+
+  function openForm(m) {
+    mode = m;
+    $('formTitle').textContent = m === 'entry' ? 'Vehicle entry' : 'Vehicle exit';
+    $('typeLabel').hidden = m !== 'entry';
+    $('formBtn').textContent = m === 'entry' ? 'Get my parking slot' : 'Show my bill';
+    $('vehForm').reset();
+    syncPlate();
+    show('form');
+  }
+
+  function showBill(b) {
+    const extra = Number(b[7]);
+    result({
+      title: 'Exit bill', label: 'Total to pay', big: inr(b[8]),
+      rows: [['Vehicle', b[1] + ' ' + b[0]], ['Slot', b[2]], ['Entry time', b[3]], ['Exit time', b[4]],
+             ['Total time stayed', fmt(Number(b[5]))], ['Initial fee (up to 2 hours)', inr(b[6])]]
+            .concat(extra ? [['Extra time (' + extra + ' h x ' + inr(20) + ')', inr(extra * 20)]] : []),
+      note: 'Test mode: no money will be charged.',
+      buttons: [
+        ['Pay and exit', async () => {
+          try {
+            const d = await api.exit(b[0]);
+            result({ title: 'Payment received', label: 'Thank you! Slot ' + d[2] + ' is now free. Amount paid:', big: inr(d[8]),
+                     rows: [['Vehicle', d[1] + ' ' + d[0]], ['Total time stayed', fmt(Number(d[5]))]],
+                     buttons: [['Done', () => show('home')]] });
+            refresh();
+          } catch (err) { say(err.message, true); }
+        }],
+        ['Back', () => show('home'), true]
+      ]
+    });
+  }
+
+  async function go() {
+    syncPlate();
+    if ($('n2').value.length !== 2 || $('n4').value.length !== 4) return say('Please enter the District Code (2 digits) and the Sequential Number (4 digits).', true);
+    const no = plateText();
+    try {
+      if (mode === 'entry') {
+        const t = types.find(x => x[0] === $('vtype').value);
+        const v = await api.entry(no, t[0]);
+        result({ title: 'Parking slot assigned', label: 'Your parking slot number', big: v[2],
+                 rows: [['Vehicle', v[1] + ' ' + v[0]], ['Entry time', v[3]], ['Initial fee (up to 2 hours)', inr(t[3])]],
+                 note: NOTE, buttons: [['Done', () => show('home')]] });
+        refresh();
+      } else {
+        showBill(await api.quote(no));
+      }
+    } catch (err) { say(err.message, true); }
+  }
+  $('formBtn').addEventListener('click', go);
+  $('vehForm').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+  $('vehForm').addEventListener('submit', e => e.preventDefault());
+
+  $('goEntry').addEventListener('click', () => openForm('entry'));
+  $('goExit').addEventListener('click', () => openForm('exit'));
+  $('formBack').addEventListener('click', () => show('home'));
+  $('search').addEventListener('input', renderTable);
+  show('home');
+  syncPlate();
+  refresh().catch(() => say('Cannot reach the Java backend. Run the Spring Boot project first.', true));
+</script>
+</body>
+</html>
